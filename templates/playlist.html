@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Playlist: {{ playlist_name }}</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px; text-align:center;">
+    <h1>Playlist: {{ playlist_name }}</h1>
+    <a href="{{ url_for('index') }}">← Torna alla Home</a>
+
+    {% if files %}
+        <ul style="list-style:none; padding: 0; margin-top: 20px;">
+            {% for file in files %}
+                <li style="margin-bottom: 20px;">
+                    <strong>{{ file }}</strong><br/>
+                    <audio controls preload="none" style="width: 300px;">
+                        <source src="{{ url_for('serve_music', filename=file) }}" type="audio/mpeg" />
+                        Il tuo browser non supporta l'elemento audio.
+                    </audio>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nessun brano in questa playlist.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Scarica e Gestisci Musica da YouTube</title>
+<link rel="manifest" href="{{ url_for('manifest') }}">
+<meta name="theme-color" content="#1DB954">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/service-worker.js')
+    .then(() => console.log('Service Worker registrato'))
+    .catch(err => console.log('Service Worker fallito', err));
+  }
+</script>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px;">
+    <h1 style="text-align:center;">🎵 Scarica e Gestisci Musica da YouTube</h1>
+
+    <!-- Form per scaricare -->
+    <form action="/download" method="post" style="text-align:center; margin-bottom:40px;">
+        <input type="text" name="url" placeholder="Incolla URL video YouTube" style="width: 300px; padding: 8px;" required />
+        <button type="submit" style="padding: 8px 15px;">Scarica</button>
+    </form>
+
+    <!-- Messaggi flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul style="list-style:none; padding:0; width: 50%; margin: auto;">
+          {% for category, message in messages %}
+            <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}black{% endif %}; margin-bottom: 10px;">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Lista file con rinomina e aggiungi a playlist -->
+    <h2>Brani scaricati</h2>
+    {% if files %}
+    <table style="margin:auto; width: 80%; border-collapse: collapse;">
+      <tr>
+        <th>Nome file</th>
+        <th>Ascolta</th>
+        <th>Rinomina</th>
+        <th>Aggiungi a playlist</th>
+      </tr>
+      {% for file in files %}
+      <tr style="border-bottom: 1px solid #ccc;">
+        <td>{{ file }}</td>
+        <td>
+          <audio controls preload="none" style="width: 250px;">
+            <source src="{{ url_for('serve_music', filename=file) }}" type="audio/mpeg" />
+            Il tuo browser non supporta l'elemento audio.
+          </audio>
+        </td>
+        <td>
+          <form action="/rename" method="post">
+            <input type="hidden" name="old_name" value="{{ file }}" />
+            <input type="text" name="new_name" placeholder="Nuovo nome" required />
+            <button type="submit">Rinomina</button>
+          </form>
+        </td>
+        <td>
+          <form action="/playlist/add" method="post">
+            <input type="hidden" name="file_name" value="{{ file }}" />
+            <select name="playlist_name" required>
+              <option value="" disabled selected>Seleziona playlist</option>
+              {% for pl in playlists.keys() %}
+                <option value="{{ pl }}">{{ pl }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit">Aggiungi</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+      <p style="text-align:center;">Nessun brano scaricato.</p>
+    {% endif %}
+
+    <!-- Crea playlist -->
+    <h2 style="margin-top: 50px; text-align:center;">Crea nuova playlist</h2>
+    <form action="/playlist/create" method="post" style="text-align:center;">
+      <input type="text" name="playlist_name" placeholder="Nome playlist" required style="padding: 8px; width: 200px;" />
+      <button type="submit" style="padding: 8px 15px;">Crea</button>
+    </form>
+
+    <!-- Lista playlist con link -->
+    <h2 style="margin-top: 50px; text-align:center;">Le tue playlist</h2>
+    {% if playlists %}
+      <ul style="list-style:none; padding:0; text-align:center;">
+        {% for pl_name in playlists.keys() %}
+          <li><a href="{{ url_for('show_playlist', name=pl_name) }}">{{ pl_name }}</a></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="text-align:center;">Nessuna playlist creata.</p>
+    {% endif %}
+</body>
+</html>
