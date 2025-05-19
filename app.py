@@ -1,9 +1,8 @@
-from flask import Flask, request, send_file, render_template, redirect, url_for, flash, send_from_directory
+from flask import Flask, request, send_file, render_template, redirect, url_for, flash, session, send_from_directory
 import yt_dlp
 import os
 import uuid
 import json
-from flask import Flask, request, send_file, render_template, redirect, url_for, flash, session
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Cambiala se vuoi
 USERNAME = "GTSHFJNVHDI18.9OCJ"
@@ -24,8 +23,8 @@ def save_playlists(data):
 
 @app.route('/music/<filename>')
 def serve_music(filename):
-if not session.get('logged_in'):
-    return redirect(url_for('login'))
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     return send_file(os.path.join(DOWNLOAD_FOLDER, filename))
 
 @app.route("/")
