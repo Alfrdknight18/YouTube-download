@@ -3,9 +3,12 @@ import yt_dlp
 import os
 import uuid
 import json
-
+from flask import Flask, request, send_file, render_template, redirect, url_for, flash, session
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Serve per i messaggi flash
+app.secret_key = "supersecretkey"  # Cambiala se vuoi
+USERNAME = "GTSHFJNVHDI18.9OCJ"
+PASSWORD = "JJHDFSJQ9374JFMVHXI,UYGHKLO987Y!!!!"
+app.secret_key = "supersecretkey"  # Cambiala se vuoi
 DOWNLOAD_FOLDER = "musica_offline"
 PLAYLIST_FILE = "playlists.json"
 
@@ -21,10 +24,21 @@ def save_playlists(data):
 
 @app.route('/music/<filename>')
 def serve_music(filename):
+if not session.get('logged_in'):
+    return redirect(url_for('login'))
     return send_file(os.path.join(DOWNLOAD_FOLDER, filename))
 
 @app.route("/")
 def index():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    if not os.path.exists(DOWNLOAD_FOLDER):
+        os.makedirs(DOWNLOAD_FOLDER)   
+    files = [f for f in os.listdir(DOWNLOAD_FOLDER) if f.endswith('.mp3')]
+    playlists = load_playlists()
+    return render_template("index.html", files=files, playlists=playlists)
+
     if not os.path.exists(DOWNLOAD_FOLDER):
         os.makedirs(DOWNLOAD_FOLDER)
     files = [f for f in os.listdir(DOWNLOAD_FOLDER) if f.endswith('.mp3')]
@@ -33,6 +47,8 @@ def index():
 
 @app.route("/download", methods=["POST"])
 def download():
+if not session.get('logged_in'):
+    return redirect(url_for('login'))
     url = request.form.get("url")
     if not url:
         flash("URL mancante", "error")
@@ -126,6 +142,8 @@ def add_to_playlist():
 
 @app.route("/playlist/<name>")
 def show_playlist(name):
+if not session.get('logged_in'):
+    return redirect(url_for('login'))
     playlists = load_playlists()
     if name not in playlists:
         flash("Playlist non trovata", "error")
@@ -144,6 +162,23 @@ def play_playlist(name):
     files = playlists[name]
     return render_template("play_playlist.html", playlist_name=name, files=files)
 from flask import send_from_directory
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == USERNAME and password == PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            flash('Credenziali errate', 'error')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
 
 @app.route('/manifest.json')
 def manifest():
