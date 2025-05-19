@@ -137,13 +137,13 @@ def add_to_playlist():
 
 @app.route("/playlist/<name>")
 def show_playlist(name):
-if not session.get('logged_in'):
-    return redirect(url_for('login'))
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     playlists = load_playlists()
     if name not in playlists:
         flash("Playlist non trovata", "error")
         return redirect(url_for('index'))
-
+    
     files = playlists[name]
     return render_template("playlist.html", playlist_name=name, files=files)
 
