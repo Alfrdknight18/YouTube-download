@@ -73,7 +73,8 @@ def download():
 def rename_file():
     old_name = request.form.get("old_name")
     new_name = request.form.get("new_name")
-    if not old_name or not new_name:
+
+    if not old_name or not new_name: 
         flash("Nome file vecchio o nuovo mancante", "error")
         return redirect(url_for('index'))
 
