@@ -38,16 +38,10 @@ def index():
     playlists = load_playlists()
     return render_template("index.html", files=files, playlists=playlists)
 
-    if not os.path.exists(DOWNLOAD_FOLDER):
-        os.makedirs(DOWNLOAD_FOLDER)
-    files = [f for f in os.listdir(DOWNLOAD_FOLDER) if f.endswith('.mp3')]
-    playlists = load_playlists()
-    return render_template("index.html", files=files, playlists=playlists)
-
 @app.route("/download", methods=["POST"])
 def download():
-if not session.get('logged_in'):
-    return redirect(url_for('login'))
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     url = request.form.get("url")
     if not url:
         flash("URL mancante", "error")
